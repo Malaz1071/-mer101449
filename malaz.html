@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malaz — TCDD Trafik (TMİ · TSİ)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1720;
+  --panel:#161f29;
+  --panel-2:#1c2733;
+  --line:#2a3947;
+  --steel:#6c7a89;
+  --text:#e7ecef;
+  --text-dim:#9aa8b3;
+  --red:#d64545;
+  --green:#3fa34d;
+  --yellow:#e8b93f;
+  --amber-glow: 0 0 14px rgba(232,185,63,.55);
+  --red-glow: 0 0 14px rgba(214,69,69,.55);
+  --green-glow: 0 0 14px rgba(63,163,77,.55);
+  --radius:2px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(1200px 500px at 15% -10%, #16212c 0%, transparent 60%),
+    repeating-linear-gradient(180deg, #0f1720 0px, #0f1720 2px, #101a23 2px, #101a23 4px),
+    var(--bg);
+  color:var(--text);
+  font-family:'IBM Plex Sans', sans-serif;
+  min-height:100vh;
+}
+h1,h2,h3,.display{font-family:'Oswald',sans-serif; letter-spacing:.03em; text-transform:uppercase; margin:0;}
+.mono{font-family:'IBM Plex Mono', monospace;}
+a{color:inherit;}
+::selection{background:var(--yellow); color:#111;}
+
+/* ---------- split flap board ---------- */
+.flapwrap{display:flex; gap:6px; justify-content:center; flex-wrap:wrap;}
+.flap{
+  background:#0b1218; border:1px solid var(--line); border-radius:3px;
+  width:52px; height:64px; display:flex; align-items:center; justify-content:center;
+  font-family:'Oswald'; font-size:36px; font-weight:600; color:var(--yellow);
+  box-shadow: inset 0 0 12px rgba(0,0,0,.6);
+  animation: flapin .6s ease-out both;
+}
+@keyframes flapin{
+  0%{ transform: rotateX(90deg); opacity:0;}
+  60%{ transform: rotateX(-12deg); opacity:1;}
+  100%{ transform: rotateX(0deg); }
+}
+@media (prefers-reduced-motion: reduce){ .flap{animation:none;} }
+
+/* ---------- gate ---------- */
+#gate{
+  position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(900px 500px at 50% 20%, #17222c 0%, #0b1218 70%);
+  padding:24px;
+}
+.gate-card{
+  width:100%; max-width:440px; background:var(--panel); border:1px solid var(--line);
+  padding:34px 30px 28px; position:relative;
+}
+.gate-card::before{
+  content:""; position:absolute; left:0; right:0; top:0; height:4px;
+  background: repeating-linear-gradient(90deg, var(--yellow) 0 14px, transparent 14px 22px);
+}
+.gate-sub{color:var(--text-dim); text-align:center; margin-top:10px; font-size:14px;}
+.gate-form{margin-top:26px; display:flex; flex-direction:column; gap:12px;}
+input[type=text],input[type=password]{
+  background:#0d151d; border:1px solid var(--line); color:var(--text); padding:13px 14px;
+  font-family:'IBM Plex Mono'; font-size:15px; border-radius:2px; outline:none;
+}
+input:focus{border-color:var(--yellow);}
+.btn{
+  cursor:pointer; border:none; padding:13px 16px; font-family:'Oswald'; letter-spacing:.06em;
+  text-transform:uppercase; font-weight:600; font-size:14px; border-radius:2px; transition:transform .1s;
+}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:var(--yellow); color:#161005;}
+.btn-primary:hover{filter:brightness(1.08);}
+.btn-ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+.btn-ghost:hover{color:var(--text); border-color:var(--steel);}
+.gate-note{margin-top:16px; font-size:12px; color:var(--text-dim); text-align:center; line-height:1.6;}
+
+/* ---------- layout ---------- */
+#app{display:none;}
+header.top{
+  position:sticky; top:0; z-index:20; background:rgba(15,23,32,.92); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+}
+.topbar{max-width:1180px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:14px 22px; gap:18px; flex-wrap:wrap;}
+.brand{display:flex; align-items:center; gap:10px;}
+.brand .mark{width:30px; height:30px; border:2px solid var(--yellow); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--yellow); font-family:'Oswald'; font-weight:700;}
+.brand .name{font-size:20px;}
+nav.tabs{display:flex; gap:2px; flex-wrap:wrap;}
+nav.tabs button{
+  background:transparent; border:1px solid transparent; color:var(--text-dim); padding:9px 13px;
+  font-family:'Oswald'; letter-spacing:.04em; text-transform:uppercase; font-size:12.5px; cursor:pointer; border-radius:2px;
+}
+nav.tabs button:hover{color:var(--text);}
+nav.tabs button.active{color:#161005; background:var(--yellow);}
+.whoami{font-family:'IBM Plex Mono'; font-size:12.5px; color:var(--text-dim); display:flex; align-items:center; gap:10px;}
+.dot-live{width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:var(--green-glow); animation:pulse 1.8s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+main{max-width:1180px; margin:0 auto; padding:34px 22px 90px;}
+section.view{display:none;}
+section.view.active{display:block; animation:fadein .35s ease both;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+.eyebrow{color:var(--yellow); font-family:'IBM Plex Mono'; font-size:12px; letter-spacing:.12em; text-transform:uppercase;}
+h2.section-title{font-size:34px; margin-top:6px;}
+.lede{color:var(--text-dim); max-width:640px; margin-top:10px; line-height:1.65;}
+
+.card{background:var(--panel); border:1px solid var(--line); padding:22px; border-radius:2px;}
+.grid{display:grid; gap:16px;}
+.grid-2{grid-template-columns:1fr 1fr;}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+@media(max-width:760px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+.kv{display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px dashed var(--line); font-size:14px;}
+.kv:last-child{border-bottom:none;}
+.kv b{color:var(--text); font-weight:600;}
+.kv span.val{color:var(--text-dim); font-family:'IBM Plex Mono'; font-size:13px; text-align:right;}
+
+.taglist{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+.tag{font-family:'IBM Plex Mono'; font-size:11.5px; padding:4px 9px; border:1px solid var(--line); border-radius:20px; color:var(--text-dim);}
+
+.subhead{margin-top:44px; padding-top:26px; border-top:1px solid var(--line);}
+.subhead h3{font-size:22px; color:var(--text);}
+.subhead .n{color:var(--yellow); font-family:'IBM Plex Mono'; font-size:13px; margin-right:8px;}
+
+table.data{width:100%; border-collapse:collapse; font-size:13.5px;}
+table.data th{text-align:left; color:var(--yellow); font-family:'Oswald'; text-transform:uppercase; font-size:12px; letter-spacing:.04em; padding:8px 10px; border-bottom:1px solid var(--line);}
+table.data td{padding:8px 10px; border-bottom:1px solid var(--line); color:var(--text-dim);}
+table.data td.mono{font-family:'IBM Plex Mono'; color:var(--text);}
+table.data tr:hover td{background:rgba(255,255,255,.02); color:var(--text);}
+.filterbar{display:flex; gap:10px; margin:16px 0; flex-wrap:wrap;}
+.filterbar input{flex:1; min-width:180px;}
+
+/* signal light */
+.siglamp{width:15px; height:15px; border-radius:50%; display:inline-block; margin-right:8px; vertical-align:middle;}
+.lamp-red{background:var(--red); box-shadow:var(--red-glow);}
+.lamp-green{background:var(--green); box-shadow:var(--green-glow);}
+.lamp-yellow{background:var(--yellow); box-shadow:var(--amber-glow);}
+
+/* station diagram */
+.station-wrap{background:var(--panel); border:1px solid var(--line); padding:10px; overflow-x:auto;}
+.station-wrap svg{display:block; min-width:900px; width:100%; height:auto;}
+.svglabel{fill:var(--text-dim); font-family:'IBM Plex Mono'; font-size:11px;}
+.svglabel.b{fill:var(--text); font-weight:600;}
+.svglabel.y{fill:var(--yellow);}
+.clickable{cursor:pointer;}
+.clickable:hover rect, .clickable:hover circle, .clickable:hover polygon{filter:brightness(1.3);}
+#tipbox{
+  position:fixed; z-index:60; max-width:280px; background:#0b1218; border:1px solid var(--yellow);
+  color:var(--text); padding:12px 14px; font-size:13px; line-height:1.5; display:none; box-shadow:0 8px 24px rgba(0,0,0,.5);
+}
+#tipbox .t{color:var(--yellow); font-family:'Oswald'; text-transform:uppercase; font-size:12px; margin-bottom:5px; letter-spacing:.04em;}
+
+/* region belt */
+.belt{position:relative; padding:60px 10px 30px; overflow-x:auto;}
+.belt-line{position:relative; min-width:920px; height:4px; background:repeating-linear-gradient(90deg, var(--steel) 0 16px, transparent 16px 26px);}
+.belt-node{
+  position:absolute; top:-46px; transform:translateX(-50%); width:96px; text-align:center;
+}
+.belt-node .dot{width:14px; height:14px; border-radius:50%; background:var(--yellow); margin:0 auto 8px; box-shadow:var(--amber-glow); position:relative; top:78px;}
+.belt-node .lbl{font-family:'Oswald'; font-size:13px; text-transform:uppercase;}
+.belt-node .num{font-family:'IBM Plex Mono'; color:var(--text-dim); font-size:11px;}
+.compass{display:flex; justify-content:space-between; max-width:920px; min-width:920px; margin-top:10px; font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-dim);}
+
+/* admin */
+.admin-locked{max-width:420px; margin:0 auto; text-align:center;}
+.list-row{display:flex; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--line); font-family:'IBM Plex Mono'; font-size:13px;}
+.list-row:last-child{border-bottom:none;}
+.list-row .t{color:var(--text-dim);}
+.pill{font-size:11px; padding:2px 8px; border-radius:20px; background:rgba(63,163,77,.15); color:var(--green); border:1px solid rgba(63,163,77,.4);}
+textarea{
+  background:#0d151d; border:1px solid var(--line); color:var(--text); padding:12px; font-family:'IBM Plex Mono';
+  font-size:13.5px; width:100%; min-height:80px; border-radius:2px; resize:vertical;
+}
+.note-card{background:var(--panel-2); border-left:3px solid var(--yellow); padding:14px 16px; margin-bottom:10px;}
+.note-card .ts{color:var(--text-dim); font-family:'IBM Plex Mono'; font-size:11px; margin-top:6px;}
+.small-btn{font-family:'IBM Plex Mono'; font-size:11px; background:transparent; border:1px solid var(--line); color:var(--text-dim); padding:5px 9px; cursor:pointer; border-radius:2px;}
+.small-btn:hover{border-color:var(--red); color:var(--red);}
+
+footer{border-top:1px solid var(--line); padding:26px 22px; text-align:center; color:var(--text-dim); font-family:'IBM Plex Mono'; font-size:11.5px;}
+</style>
+</head>
+<body>
+
+<!-- ===================== GATE ===================== -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="flapwrap" id="flapTitle"></div>
+    <div class="gate-sub">Trafik (TMİ · TSİ) — dispeçer eğitim istasyonu</div>
+    <div class="gate-form">
+      <input type="text" id="nameInput" placeholder="Adınızı yazın ve girişi kaydedin" maxlength="40" autocomplete="off">
+      <button class="btn btn-primary" onclick="doLogin()">Hatta Gir</button>
+    </div>
+    <div class="gate-note">Giriş kaydınız yalnızca istasyon amirine (yönetici paneline) görünür.<br>Bu bir simülasyon/eğitim aracıdır, resmi TCDD sistemi değildir.</div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+<div id="tipbox"><div class="t" id="tipT"></div><div id="tipB"></div></div>
+
+<header class="top">
+  <div class="topbar">
+    <div class="brand"><div class="mark">M</div><div class="name display">Malaz</div></div>
+    <nav class="tabs" id="tabs">
+      <button data-v="home" class="active">Anasayfa</button>
+      <button data-v="tmi">TMİ</button>
+      <button data-v="tsi">TSİ</button>
+      <button data-v="isaretler">İşaret &amp; Sinyal</button>
+      <button data-v="istasyon">İstasyon Şeması</button>
+      <button data-v="bolgeler">Bölgeler</button>
+      <button data-v="belgeler">Belgeler</button>
+      <button data-v="admin">Yönetim</button>
+    </nav>
+    <div class="whoami"><span class="dot-live"></span><span id="whoLabel"></span></div>
+  </div>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <section class="view active" id="view-home">
+    <div class="eyebrow">Malaz İstasyonu · Kumanda Merkezi</div>
+    <h2 class="section-title">Hoş geldin, <span id="homeName" style="color:var(--yellow)"></span></h2>
+    <p class="lede">Bu panel, TCDD'nin trenlerin merkezden telefonla idaresi (TMİ) ve trenlerin sinyallerle merkezden idaresi (TSİ) kurallarını; işaret, sinyal, makas ve bölge bilgileriyle birlikte anlatır. Soldaki menüden ilerleyebilirsin.</p>
+
+    <div class="grid grid-3" style="margin-top:28px;">
+      <div class="card">
+        <div class="eyebrow">01 — Sistem</div>
+        <h3 style="margin-top:8px; font-size:18px;">TMİ / TSİ nedir?</h3>
+        <p style="color:var(--text-dim); font-size:14px; margin-top:8px; line-height:1.6;">TMİ, tren trafiğinin merkezden telefonla; TSİ ise elektrikli sinyallerle merkezden idare edilmesidir.</p>
+      </div>
+      <div class="card">
+        <div class="eyebrow">02 — Bölgeler</div>
+        <h3 style="margin-top:8px; font-size:18px;">8 trafik bölgesi</h3>
+        <p style="color:var(--text-dim); font-size:14px; margin-top:8px; line-height:1.6;">İstanbul, Ankara, İzmir, Sivas, Malatya, Adana, Afyon ve YHT bölgesi, doğu-batı hattında.</p>
+      </div>
+      <div class="card">
+        <div class="eyebrow">03 — Şema</div>
+        <h3 style="margin-top:8px; font-size:18px;">Sanal istasyon</h3>
+        <p style="color:var(--text-dim); font-size:14px; margin-top:8px; line-height:1.6;">Makas, sinyal, samafor ve mesafe işaretlerini canlı şema üzerinde incele.</p>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">//</span>Duyurular</h3>
+      <p style="color:var(--text-dim); font-size:13px; margin-top:6px;">İstasyon amiri tarafından eklenen notlar burada görünür.</p>
+      <div id="homeNotes" style="margin-top:16px;"></div>
+    </div>
+  </section>
+
+  <!-- TMI -->
+  <section class="view" id="view-tmi">
+    <div class="eyebrow">Bölüm 01</div>
+    <h2 class="section-title">Trenlerin Merkezden Telefonla İdaresi</h2>
+    <p class="lede">TMİ, tren trafiğinin merkezden telefonla idare edildiği, çoğunlukla samafor ve yüksek/cüce sinyallerin kumandalı ya da otomatik çalıştığı klasik hat sistemidir.</p>
+
+    <div class="subhead">
+      <h3><span class="n">1.1</span>Temel kavramlar</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card"><div class="kv"><b>İstasyon tesisleri</b><span class="val">Baş makastan çıkış makasına kadar olan bölüm</span></div>
+        <div class="kv"><b>İstasyon</b><span class="val">Yolcu ve yük taşımacılığı yapılan yer</span></div>
+        <div class="kv"><b>Durak</b><span class="val">Sadece yolcu indirilip bindirilen yer</span></div>
+        <div class="kv"><b>Anayol</b><span class="val">Sapmasız yol</span></div>
+        <div class="kv"><b>Barınma yolu</b><span class="val">Anayola yardımcı yollar</span></div></div>
+        <div class="card"><div class="kv"><b>En yüksek hız</b><span class="val">Livredeki en yüksek hız</span></div>
+        <div class="kv"><b>Doğal seyir süresi</b><span class="val">Normal koşullarda gidilebilecek ideal süre</span></div>
+        <div class="kv"><b>En az seyir süresi</b><span class="val">Bir istasyona gidilebilecek en az süre</span></div>
+        <div class="kv"><b>Vagonet</b><span class="val">Yük taşır, hat dışı edilir</span></div>
+        <div class="kv"><b>Pompalı vagonet</b><span class="val">İnsan ve yük taşır, hat dışı edilir</span></div>
+        <div class="kv"><b>Pompalı / motorlu drezin</b><span class="val">Sadece insan taşır, hat dışı edilir</span></div>
+        <div class="kv"><b>Oto / çekici oto / poz otosu</b><span class="val">Hat dışı edilemez</span></div></div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">1.2</span>İstasyon tipleri</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card"><h3 style="font-size:16px;">İ Tipi İstasyon</h3>
+          <div class="kv"><b>Sapmasız makas geçiş hızı</b><span class="val">55 km/s</span></div>
+          <div class="kv"><b>Sinyal</b><span class="val">Giriş ve çıkış samaforu vardır</span></div>
+          <div class="kv"><b>Makasçı</b><span class="val">Baş makasa gelmez</span></div>
+          <div class="kv"><b>Durdurma noktası</b><span class="val">Çıkış samaforunun önü</span></div>
+        </div>
+        <div class="card"><h3 style="font-size:16px;">Toros Tipi İstasyon</h3>
+          <div class="kv"><b>Sapmasız makas geçiş hızı</b><span class="val">40 km/s</span></div>
+          <div class="kv"><b>Sinyal</b><span class="val">Sadece giriş samaforu vardır</span></div>
+          <div class="kv"><b>Makasçı</b><span class="val">Baş makasa gelir</span></div>
+          <div class="kv"><b>Durdurma noktası</b><span class="val">Giriş samaforunda</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">1.3</span>Tren numaralandırma kodları</h3>
+      <div class="grid grid-3" style="margin-top:14px;">
+        <div class="card"><div class="kv"><b>0</b><span class="val">Banliyö</span></div><div class="kv"><b>1</b><span class="val">YHT</span></div><div class="kv"><b>2</b><span class="val">Yolcu</span></div></div>
+        <div class="card"><div class="kv"><b>3-6</b><span class="val">Yük</span></div><div class="kv"><b>7</b><span class="val">Tek lokomotif</span></div><div class="kv"><b>8</b><span class="val">Kılavuz / test treni</span></div></div>
+        <div class="card"><div class="kv"><b>9</b><span class="val">Altyapı treni</span></div></div>
+      </div>
+      <p style="color:var(--text-dim); font-size:13px; margin-top:12px;">Trenler beş rakamlıdır: ilk hane bölge, sonraki hane cins kodu, kalan rakamlar sıra numarasıdır. Örn. <span class="mono" style="color:var(--yellow)">4-3-882</span> → 4. bölge, yük treni, 882 sıra no.</p>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">1.4</span>Trenlerin sıralanması</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card"><h3 style="font-size:15px; color:var(--yellow);">Yolcu</h3>
+          <div class="taglist"><span class="tag">Banliyö</span><span class="tag">YHT</span><span class="tag">Süper ekspres</span><span class="tag">Mavi tren</span><span class="tag">Ekspres</span><span class="tag">Bölgesel ekspres</span><span class="tag">Moto tren</span><span class="tag">Raybüs</span><span class="tag">Yolcu treni</span><span class="tag">Karma yolcu</span><span class="tag">Özel yolcu</span></div></div>
+        <div class="card"><h3 style="font-size:15px; color:var(--yellow);">Yük</h3>
+          <div class="taglist"><span class="tag">Ekspres yük</span><span class="tag">Blok yük</span><span class="tag">Bölgesel hızlı yük</span><span class="tag">Yavaş yük</span><span class="tag">Özel yük</span></div>
+          <p style="color:var(--text-dim); font-size:13px; margin-top:12px;">Üçüncü sınıf: Hizmet trenleri.</p></div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">1.5</span>Buluşma, öne geçme ve bekletme</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card">
+          <div class="kv"><b>Buluşma bekleyen tren</b><span class="val">İstasyona ilk gelen</span></div>
+          <div class="kv"><b>Buluşmaya gelen tren</b><span class="val">Sonradan gelen</span></div>
+          <div class="kv"><b>X buluşma</b><span class="val">Karşılıklı yol çiğneme</span></div>
+          <div class="kv"><b>V buluşma</b><span class="val">Tek taraflı yol çiğneme</span></div>
+          <div class="kv"><b>Tespit</b><span class="val">Tarifeli / tarifesiz tren buluşmasında</span></div>
+          <div class="kv"><b>Tedbil</b><span class="val">Buluşma değişikliğinde teyirsiz trene</span></div>
+          <div class="kv"><b>İhbar</b><span class="val">Buluşma değişikliğinde teyirli trene</span></div>
+        </div>
+        <div class="card">
+          <div class="kv"><b>Banliyö trenleri</b><span class="val">Hiçbir şekilde bekletilemez</span></div>
+          <div class="kv"><b>Süper ekspres / mavi tren / ekspres</b><span class="val">15 dk teyir kapanacaksa 5 dk bekletilir</span></div>
+          <div class="kv"><b>Diğer yolcu trenleri için teyir sınırı</b><span class="val">Yolcuda 15 dk, yükte 30 dk</span></div>
+          <div class="kv"><b>Öne geçen tren</b><span class="val">Numara yanına " I "</span></div>
+          <div class="kv"><b>Önüne geçilen tren</b><span class="val">Numara yanına " II "</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">1.6</span>Zamanlama kuralları</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card">
+          <h3 style="font-size:15px; color:var(--yellow);">TMİ'de durmadan geçen trenler</h3>
+          <div class="kv"><b>3 dk ve daha fazla erken</b><span class="val">Durdurulur, vaktine kadar bekletilir</span></div>
+          <div class="kv"><b>1–2 dk erken</b><span class="val">Durdurulmaz</span></div>
+          <div class="kv"><b>Vaktinden önce gönderme — yolcu</b><span class="val">Asla gönderilemez</span></div>
+          <div class="kv"><b>Vaktinden önce gönderme — yük</b><span class="val">İzinle 120 dk öncesine kadar</span></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px; color:var(--yellow);">Ardışık trenlerin çıkış aralığı</h3>
+          <div class="kv"><b>İstasyon arası &lt; 20 dk</b><span class="val">İlk trenin varışından 10 dk sonra</span></div>
+          <div class="kv"><b>İstasyon arası 20–30 dk</b><span class="val">İlk trenin çıkışından 30 dk sonra</span></div>
+          <div class="kv"><b>İstasyon arası &gt; 30 dk</b><span class="val">Süre dolunca 5588 verilerek gönderilir</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">1.7</span>Manevra tatil süreleri &amp; diğer notlar</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card">
+          <div class="kv"><b>İşaretsiz istasyon</b><span class="val">Manevra, tren gelişinden 10 dk önce tatil</span></div>
+          <div class="kv"><b>İleri koruma + giriş samaforu olan istasyon</b><span class="val">5 dk önce tatil</span></div>
+          <div class="kv"><b>TSİ sistemi</b><span class="val">3 dk önce tatil</span></div>
+          <div class="kv"><b>Tren teşkil memuru</b><span class="val">Makasa en geç 15 dk önce gönderilir</span></div>
+        </div>
+        <div class="card">
+          <div class="kv"><b>Yolda hat üzerine bırakılan malzeme (yakın raya 80–125cm)</b><span class="val">Yükseklik en fazla 20 cm</span></div>
+          <div class="kv"><b>Sıralı yontma taş / sandık / çuval / travers</b><span class="val">Yakın ray içine en az 125 cm</span></div>
+          <div class="kv"><b>Toprak / balast / kömür gibi eğimli malzeme</b><span class="val">Yakın ray içine en az 50 cm</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">1.8</span>İmdat isteme</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card">
+          <h3 style="font-size:15px; color:var(--yellow);">İmdat gerektiren durumlar</h3>
+          <div class="taglist"><span class="tag">Kaza</span><span class="tag">Sel / heyelan</span><span class="tag">Lokomotif arızası</span><span class="tag">Makinist rahatsızlığı</span></div>
+          <p style="color:var(--text-dim); font-size:13px; margin-top:12px;">Lokomotif arızasında imdat çıkmadan arıza çözülürse trafik kumanda merkezi aranıp durum bildirilir; imdat lokomotifi yola çıktıysa tren beklemeden hareket ettirilmez.</p>
+        </div>
+        <div class="card">
+          <h3 style="font-size:15px; color:var(--yellow);">İmdat isterken bildirilecek bilgiler</h3>
+          <div class="taglist"><span class="tag">Tarih ve saat</span><span class="tag">Bulunulan km</span><span class="tag">Olayın türü</span><span class="tag">Yolcu sayısı</span><span class="tag">Hava / yağış durumu</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TSI -->
+  <section class="view" id="view-tsi">
+    <div class="eyebrow">Bölüm 02</div>
+    <h2 class="section-title">Trenlerin Sinyallerle Merkezden İdaresi</h2>
+    <p class="lede">TSİ, tren trafiğinin elektrikli sinyaller ile merkezden idare edilmesidir. Sayding (anayola yardımcı yol) ve banalizasyon (çift yollu hatta iki trenin arka arkaya gönderilmesi) kavramları TSİ'ye özgüdür.</p>
+
+    <div class="subhead">
+      <h3><span class="n">2.1</span>Panolar</h3>
+      <table class="data" style="margin-top:10px;">
+        <tr><th>Pano</th><th>Hat</th></tr>
+        <tr><td>Kumanda panosu</td><td class="mono">Haydarpaşa – Kayaş</td></tr>
+        <tr><td>İstasyon kumanda masası</td><td class="mono">İskenderun – Divriği, Kayaş – Hanlı – Çetinkaya, İzmir terminalleri</td></tr>
+        <tr><td>Manevra panosu</td><td class="mono">İzmir saydingleri</td></tr>
+      </table>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">2.2</span>Makas türleri</h3>
+      <div class="grid grid-3" style="margin-top:14px;">
+        <div class="card"><b>Uzaktan kumandalı</b><p style="color:var(--text-dim); font-size:13px; margin-top:8px;">Elle veya merkezden yapılır</p></div>
+        <div class="card"><b>Elektrik kilitli</b><p style="color:var(--text-dim); font-size:13px; margin-top:8px;">Elle yapılır</p></div>
+        <div class="card"><b>Devre kontrollü toplu</b><p style="color:var(--text-dim); font-size:13px; margin-top:8px;">Özel kilitli, elle veya merkezden</p></div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">2.3</span>Terminal / terminal olmayan istasyonlar</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card"><h3 style="font-size:15px; color:var(--yellow);">Terminal istasyon</h3>
+          <div class="kv"><b>Manevra</b><span class="val">Fazladır</span></div>
+          <div class="kv"><b>Giriş sinyalinden önce</b><span class="val">Koruma sinyali</span></div>
+          <div class="kv"><b>Meşgul yollara</b><span class="val">Sarı üstü kırmızı açabilir</span></div>
+        </div>
+        <div class="card"><h3 style="font-size:15px; color:var(--yellow);">Terminal olmayan istasyon</h3>
+          <div class="kv"><b>Manevra</b><span class="val">Azdır</span></div>
+          <div class="kv"><b>Giriş sinyalinden önce</b><span class="val">Yaklaşma sinyali</span></div>
+          <div class="kv"><b>Sarı üstü kırmızı</b><span class="val">Sadece tesisata bağlı olmayan yollara</span></div>
+          <div class="kv"><b>Masa manevra vaziyetinde</b><span class="val">Komşu istasyondan tren çıkarılamaz</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">2.4</span>TSİ sinyal anlamları</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card">
+          <div class="kv"><b><span class="siglamp lamp-red"></span>Kırmızı</b><span class="val">Dur!</span></div>
+          <div class="kv"><b><span class="siglamp lamp-green"></span>Yeşil</b><span class="val">En az 2 blok boş</span></div>
+          <div class="kv"><b><span class="siglamp lamp-yellow"></span>Sarı</b><span class="val">Gireceğimiz blok boş</span></div>
+          <div class="kv"><b>Sarı üstü sarı</b><span class="val">Makastan saparak izinli hızla ilerle, blok boş</span></div>
+          <div class="kv"><b>Sarı üstü yeşil</b><span class="val">Makastan saparak ilerle, en az 2 blok boş</span></div>
+        </div>
+        <div class="card">
+          <div class="kv"><b>Sarı üstü kırmızı</b><span class="val">Sınırlı seyir, blok meşgul olabilir</span></div>
+          <div class="kv"><b>Yeşil üstü kırmızı</b><span class="val">Manevra sinyali</span></div>
+          <div class="kv"><b>Yanar söner kırmızı</b><span class="val">Sinyalsiz yoldan, sinyalliye girmeden sınırlı seyir</span></div>
+          <div class="kv"><b>Yanar söner yeşil</b><span class="val">Sinyalsizden sinyalliye geçiş serbest, çıkış makasına kadar sınırlı seyir</span></div>
+          <div class="kv"><b>Yanar söner sarı</b><span class="val">Sinyalsizden sinyalliye geçiş serbest, blok boş</span></div>
+        </div>
+      </div>
+      <p style="color:var(--text-dim); font-size:13px; margin-top:12px;">Sinyal arızası, sönüklük, birden fazla lambanın yanması ya da gün ışığının görünmesi hâlinde kural tektir: derhal dur!</p>
+    </div>
+  </section>
+
+  <!-- İŞARETLER -->
+  <section class="view" id="view-isaretler">
+    <div class="eyebrow">Bölüm 03</div>
+    <h2 class="section-title">İşaretler &amp; Sinyaller</h2>
+    <p class="lede">Hat üzerindeki sabit işaretler, sinyal türleri, renk anlamları, makas fenerleri ve trende taşınan işaretler.</p>
+
+    <div class="subhead">
+      <h3><span class="n">3.1</span>Baş makasa uzaklıklar</h3>
+      <div class="grid grid-3" style="margin-top:14px;">
+        <div class="card"><div class="kv"><b>Telefon direkleri</b><span class="val">750 m</span></div></div>
+        <div class="card"><div class="kv"><b>İleri koruma</b><span class="val">700 m</span></div></div>
+        <div class="card"><div class="kv"><b>Samafor</b><span class="val">200–300 m</span></div></div>
+      </div>
+      <div class="grid grid-3" style="margin-top:12px;">
+        <div class="card"><div class="kv"><b>Samafor ihbar</b><span class="val">Samafora 500 m</span></div></div>
+        <div class="card"><div class="kv"><b>Çalışma takımı levhası</b><span class="val">Çalışma yerine 300–500 m</span></div></div>
+        <div class="card"><div class="kv"><b>Mesafe tayin levhası</b><span class="val">Samafor ihbar, ileri koruma ve D fenerinden önce</span></div></div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">3.2</span>Sinyal sınıflandırması (TMİ)</h3>
+      <div class="grid grid-3" style="margin-top:14px;">
+        <div class="card"><b>Görünüşe göre</b>
+          <div class="taglist"><span class="tag">Yüksek sinyal</span><span class="tag">Cüce sinyal</span></div></div>
+        <div class="card"><b>Kullanışa göre</b>
+          <div class="taglist"><span class="tag">Kumandalı</span><span class="tag">Otomatik</span></div></div>
+        <div class="card"><b>Göreve göre</b>
+          <div class="taglist"><span class="tag">Giriş (4 lamba, kumandalı)</span><span class="tag">Çıkış (3-4 lamba, kumandalı)</span><span class="tag">Koruma (3 lamba, kumandalı)</span><span class="tag">Otomatik blok (3 lamba, otomatik)</span><span class="tag">Yaklaşma (3 lamba, otomatik)</span><span class="tag">Tekrarlama (2 lamba, otomatik)</span></div></div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">3.3</span>TMİ renk anlamları</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card">
+          <div class="kv"><b><span class="siglamp lamp-red"></span>Kırmızı</b><span class="val">Dur!</span></div>
+          <div class="kv"><b><span class="siglamp lamp-green"></span>Yeşil</b><span class="val">Hızı azalt — max 25 km/s (süper ekspres/ekspres/mavi tren/rayotobüs/motorlu trende 40 km/s)</span></div>
+          <div class="kv"><b><span class="siglamp lamp-yellow"></span>Sarı</b><span class="val">Bir dur bildirisine gidileceğini bildirir</span></div>
+        </div>
+        <div class="card">
+          <div class="kv"><b>Gün ışığı</b><span class="val">Yol serbest</span></div>
+          <div class="kv"><b>Kılıf içinde bayrak</b><span class="val">Yol serbest</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">3.4</span>Yuvarlak levhalar &amp; hız kısıtlama</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card">
+          <div class="kv"><b>Ortası kırmızı, kenarı beyaz</b><span class="val">Dur!</span></div>
+          <div class="kv"><b>Ortası yeşil, kenarı beyaz</b><span class="val">Takayüdat başlangıcı</span></div>
+          <div class="kv"><b>Ortası beyaz, kenarı yeşil</b><span class="val">Takayüdat sonu</span></div>
+        </div>
+        <div class="card">
+          <p style="font-size:13px; color:var(--text-dim); line-height:1.7;">Hız kısıtlama işaretleri sırasıyla <b style="color:var(--text)">ihbar → 1000 m sonra → başlangıç → bitiş</b> olarak dizilir. Gündüz levha, gece görülen ve duyulan (ağız düdüğü, lokomotif düdüğü, kestane fişeği) biçimleriyle desteklenir.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">3.5</span>Samafor &amp; ileri koruma</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card"><h3 style="font-size:15px; color:var(--yellow);">İleri koruma işareti</h3>
+          <div class="kv"><b>Gündüz açık</b><span class="val">Levha yatık görünür</span></div>
+          <div class="kv"><b>Gündüz kapalı</b><span class="val">Ortası kırmızı, kenarı beyaz</span></div>
+          <div class="kv"><b>Gece açık</b><span class="val"><span class="siglamp lamp-green"></span>Yeşil ışık</span></div>
+          <div class="kv"><b>Gece kapalı</b><span class="val"><span class="siglamp lamp-red"></span>Kırmızı ışık</span></div>
+        </div>
+        <div class="card"><h3 style="font-size:15px; color:var(--yellow);">Samafor ihbar işareti</h3>
+          <div class="kv"><b>Gündüz kapalı</b><span class="val">Ortası sarı, kenarı beyaz</span></div>
+          <div class="kv"><b>Gündüz açık</b><span class="val">Levha yatık görünür</span></div>
+          <div class="kv"><b>Gece kapalı</b><span class="val"><span class="siglamp lamp-yellow"></span>Sarı ışık</span></div>
+          <div class="kv"><b>Gece açık</b><span class="val"><span class="siglamp lamp-green"></span>Yeşil ışık</span></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <h3 style="font-size:15px; color:var(--yellow);">Samafor kolları</h3>
+        <div class="kv"><b>Kapalı</b><span class="val">Tüm kollar kapalı</span></div>
+        <div class="kv"><b>Açık (üst kol)</b><span class="val">135° açı yapar</span></div>
+        <div class="kv"><b>Tek kol açık</b><span class="val">Sapmadan anayoldan devam</span></div>
+        <div class="kv"><b>İki kol açık</b><span class="val">1 sapma yapılacak</span></div>
+        <div class="kv"><b>Üç kol açık</b><span class="val">En az 2 sapma yapılacak</span></div>
+        <p style="color:var(--text-dim); font-size:12.5px; margin-top:8px;">Samafor ihbar kapalıysa samaforun önünde durulur.</p>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">3.6</span>Makas fenerleri</h3>
+      <table class="data" style="margin-top:10px;">
+        <tr><th>Görünüm</th><th>Anlamı</th></tr>
+        <tr><td>Basit fener — dikdörtgen yeşil</td><td>İğne ucundan sapmadan anayola devam</td></tr>
+        <tr><td>Basit fener — dikdörtgen beyaz</td><td>Ökçe ucundan sapmadan anayola devam</td></tr>
+        <tr><td>Basit fener — ok işareti</td><td>İğne ucundan sapmalı barınmaya çıkış</td></tr>
+        <tr><td>Basit fener — süt beyaz yuvarlak</td><td>Ökçe ucundan sapmalı anayola çıkış</td></tr>
+        <tr><td>Tek toplu İngiliz makas — iki dikdörtgen yeşil</td><td>Kesişen yollarda sapmadan devam</td></tr>
+        <tr><td>Tek toplu İngiliz makas — "V" iki ok</td><td>Kesişen yollarda sapmalı devam</td></tr>
+        <tr><td>AEG tipi — yatık "V"</td><td>Sapma yapmak</td></tr>
+        <tr><td>AEG tipi — dik kesen iki ok</td><td>Sapmadan devam</td></tr>
+      </table>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">3.7</span>Trende &amp; personelde bulunan işaretler</h3>
+      <div class="grid grid-3" style="margin-top:14px;">
+        <div class="card"><b>Tren şefi</b><div class="taglist"><span class="tag">Ağız düdüğü</span><span class="tag">Kılıflı bayrak</span><span class="tag">El feneri</span><span class="tag">6 kestane fişeği</span></div></div>
+        <div class="card"><b>Kondüktör</b><div class="taglist"><span class="tag">Ağız düdüğü</span></div></div>
+        <div class="card"><b>TTİ</b><div class="taglist"><span class="tag">Ağız düdüğü</span><span class="tag">Kılıflı bayrak</span><span class="tag">El feneri</span></div></div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <h3 style="font-size:15px; color:var(--yellow);">Ağız düdüğü kodları</h3>
+        <div class="grid grid-2">
+          <div><div class="kv"><b>1 uzun</b><span class="val">İleri</span></div><div class="kv"><b>2 uzun</b><span class="val">Geri</span></div><div class="kv"><b>3 kısa</b><span class="val">Dur!</span></div><div class="kv"><b>3 kısa (mükerrer)</b><span class="val">Acilen dur!</span></div></div>
+          <div><div class="kv"><b>Manevra — 2 kısa</b><span class="val">Tampon yapılacak</span></div><div class="kv"><b>Manevra — 1 uzun 1 kısa</b><span class="val">Yavaşla</span></div><div class="kv"><b>Manevra — 1 kısa 1 uzun</b><span class="val">Atma manevra, hızlan</span></div><div class="kv"><b>Fren tecrübesi — 3/2/1 kısa</b><span class="val">Fren yap / çöz / muntazam</span></div></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <h3 style="font-size:15px; color:var(--yellow);">Kestane fişeği</h3>
+        <p style="color:var(--text-dim); font-size:13px; line-height:1.7;">Anayolda arızalanan trenler için: eğime göre belirlenen mesafeden itibaren 50 m aralıklarla sağ-sol-sağ raylara, hem ön hem arka tarafa konur. Hızını koruyamayan trenler için: 800 m aralıklarla yalnızca sağ raya, trenin arkasına konması yeterlidir.</p>
+        <div class="grid grid-3" style="margin-top:10px;">
+          <div class="kv"><b>Binde 5'e kadar</b><span class="val">750 m</span></div>
+          <div class="kv"><b>Binde 5–10</b><span class="val">850 m</span></div>
+          <div class="kv"><b>Binde 10'dan fazla</b><span class="val">1050 m</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subhead">
+      <h3><span class="n">3.8</span>Hareket memuru diski &amp; telefon çeşitleri</h3>
+      <div class="grid grid-2" style="margin-top:14px;">
+        <div class="card"><h3 style="font-size:15px; color:var(--yellow);">Hareket memuru diski</h3>
+          <p style="color:var(--text-dim); font-size:13px; line-height:1.7;">Bir yüzü ortası kırmızı kenarı beyaz, diğer yüzü ortası beyaz kenarı yeşildir. Treni durdurmak, hareket emri vermek ve durmadan geçecek trenler için kullanılır.</p></div>
+        <div class="card"><h3 style="font-size:15px; color:var(--yellow);">Telefon çeşitleri</h3>
+          <div class="taglist"><span class="tag">Hizmet</span><span class="tag">Trafik</span><span class="tag">Makas</span><span class="tag">Pano</span><span class="tag">Otomatik</span><span class="tag">Seyyar</span><span class="tag">Hat boyu</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- İSTASYON ŞEMASI -->
+  <section class="view" id="view-istasyon">
+    <div class="eyebrow">Bölüm 04 · Simülasyon</div>
+    <h2 class="section-title">Sanal İstasyon Şeması</h2>
+    <p class="lede">Aşağıdaki şema, PDF'teki kurallara göre <b style="color:var(--text)">örnek/eğitim amaçlı</b> kurulmuş bir "İ Tipi" istasyonu gösterir. Yön etiketleri PDF'te geçen <span class="mono" style="color:var(--yellow)">İskenderun–Divriği</span> hattından esinlenmiştir. Makas ve sinyal numaraları, gerçek TCDD kayıtları değil, dispeçerlik mantığını öğretmek için kullanılan <b style="color:var(--text)">örnek bir numaralandırmadır</b> — öğeler üzerine tıklayarak anlamlarını okuyabilirsin.</p>
+
+    <div class="grid grid-2" style="margin:18px 0; max-width:420px; gap:10px;">
+      <select id="regionSelect" class="mono" style="background:#0d151d;border:1px solid var(--line);color:var(--text);padding:10px;">
+        <option value="1">1 — İstanbul</option>
+        <option value="2">2 — Ankara</option>
+        <option value="3">3 — İzmir</option>
+        <option value="4">4 — Sivas</option>
+        <option value="5">5 — Malatya</option>
+        <option value="6">6 — Adana</option>
+        <option value="7">7 — Afyon</option>
+        <option value="8">8 — YHT</option>
+      </select>
+      <select id="typeSelect" class="mono" style="background:#0d151d;border:1px solid var(--line);color:var(--text);padding:10px;">
+        <option value="i">İ Tipi istasyon (55 km/s)</option>
+        <option value="toros">Toros Tipi istasyon (40 km/s)</option>
+      </select>
+    </div>
+
+    <div class="station-wrap"><svg id="stationSvg" viewBox="0 0 1300 420" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+    <div class="grid grid-3" style="margin-top:20px;">
+      <div class="card"><b class="mono" style="color:var(--yellow);">Baş makas</b><p style="font-size:13px;color:var(--text-dim);margin-top:6px;">İstasyon tesisleri, baş makastan çıkış makasına kadar olan bölümdür. Örnek numara: <span id="hmNo" class="mono"></span></p></div>
+      <div class="card"><b class="mono" style="color:var(--yellow);">Sinyal seti</b><p style="font-size:13px;color:var(--text-dim);margin-top:6px;">Giriş sinyali 4 lambalı, çıkış sinyali 3-4 lambalı, koruma sinyali 3 lambalıdır. Bu bölge için örnek kod: <span id="sigNo" class="mono"></span></p></div>
+      <div class="card"><b class="mono" style="color:var(--yellow);">Yön / hat</b><p style="font-size:13px;color:var(--text-dim);margin-top:6px;">Bölgeye göre örnek hat adı: <span id="lineNo" class="mono"></span></p></div>
+    </div>
+  </section>
+
+  <!-- BÖLGELER -->
+  <section class="view" id="view-bolgeler">
+    <div class="eyebrow">Bölüm 05</div>
+    <h2 class="section-title">TCDD Trafik Bölgeleri — Doğu / Batı</h2>
+    <p class="lede">PDF'te tanımlı 8 bölge, coğrafi konumlarına göre batıdan doğuya sıralanmıştır. YHT ayrı ve hatlar üstü bir bölge olarak yönetilir.</p>
+
+    <div class="belt">
+      <div class="compass"><span>◀ BATI</span><span>DOĞU ▶</span></div>
+      <div class="belt-line" id="beltLine"></div>
+    </div>
+
+    <div class="grid grid-3" style="margin-top:10px;">
+      <div class="card"><div class="kv"><b>1</b><span class="val">İstanbul</span></div></div>
+      <div class="card"><div class="kv"><b>2</b><span class="val">Ankara</span></div></div>
+      <div class="card"><div class="kv"><b>3</b><span class="val">İzmir</span></div></div>
+      <div class="card"><div class="kv"><b>4</b><span class="val">Sivas</span></div></div>
+      <div class="card"><div class="kv"><b>5</b><span class="val">Malatya</span></div></div>
+      <div class="card"><div class="kv"><b>6</b><span class="val">Adana</span></div></div>
+      <div class="card"><div class="kv"><b>7</b><span class="val">Afyon</span></div></div>
+      <div class="card"><div class="kv"><b>8</b><span class="val">YHT (hatlar üstü)</span></div></div>
+    </div>
+  </section>
+
+  <!-- BELGELER -->
+  <section class="view" id="view-belgeler">
+    <div class="eyebrow">Bölüm 06</div>
+    <h2 class="section-title">Tren Belgeleri &amp; Model Numaraları</h2>
+    <p class="lede">TCDD trafik işleyişinde kullanılan model/belge numaraları. Aşağıdan arayabilirsin.</p>
+    <div class="filterbar"><input type="text" id="belgeFilter" placeholder="Model numarası veya açıklama ara… (örn. 5588, buluşma)"></div>
+    <table class="data" id="belgeTable">
+      <tr><th style="width:90px;">Model</th><th>Kullanım Alanı</th></tr>
+    </table>
+  </section>
+
+  <!-- ADMIN -->
+  <section class="view" id="view-admin">
+    <div class="eyebrow">Bölüm 07 · Kısıtlı</div>
+    <h2 class="section-title">Yönetim Paneli</h2>
+
+    <div id="adminLocked" class="admin-locked card" style="margin-top:20px;">
+      <p style="color:var(--text-dim); font-size:14px;">Bu panel yalnızca istasyon amiri (senin) için. Giriş yapan ziyaretçilerin isim listesini görmek ve siteye yeni duyuru/madde eklemek için parolayı gir.</p>
+      <div style="display:flex; gap:10px; margin-top:16px;">
+        <input type="password" id="adminPass" placeholder="Yönetici parolası" style="flex:1;">
+        <button class="btn btn-primary" onclick="checkAdmin()">Aç</button>
+      </div>
+      <p id="adminErr" style="color:var(--red); font-size:12.5px; margin-top:10px; display:none;">Parola hatalı.</p>
+    </div>
+
+    <div id="adminOpen" style="display:none; margin-top:20px;">
+      <div class="grid grid-2">
+        <div class="card">
+          <h3 style="font-size:16px;">Giriş Yapanlar <span class="pill" id="visCount">0</span></h3>
+          <div id="visitorList" style="margin-top:12px; max-height:340px; overflow:auto;"></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:16px;">Duyuru / Madde Ekle</h3>
+          <p style="color:var(--text-dim); font-size:12.5px; margin-top:6px;">Eklediğin her not, Anasayfa'da "Duyurular" bölümünde tüm ziyaretçilere görünür.</p>
+          <textarea id="noteInput" placeholder="Örn: Yarın 09:00 Toros hattı manevra tatbikatı var."></textarea>
+          <button class="btn btn-primary" style="margin-top:10px; width:100%;" onclick="addNote()">Siteye Ekle</button>
+          <div id="noteList" style="margin-top:18px;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>MALAZ — TCDD TMİ / TSİ eğitim simülasyonu · Kaynak: kullanıcı tarafından yüklenen çalışma notu · resmi bir TCDD ürünü değildir</footer>
+</div>
+
+<script>
+/* ---------------- helpers ---------------- */
+const ADMIN_PASS = "malaz2026";
+function $(s,r=document){return r.querySelector(s);}
+function $all(s,r=document){return [...r.querySelectorAll(s)];}
+async function sget(key, shared){ try{ const r = await window.storage.get(key, shared); return r ? JSON.parse(r.value) : null; }catch(e){ return null; } }
+async function sset(key, value, shared){ try{ return await window.storage.set(key, JSON.stringify(value), shared); }catch(e){ return null; } }
+
+/* ---------------- split flap title ---------------- */
+(function(){
+  const word = "MALAZ";
+  const wrap = $('#flapTitle');
+  word.split('').forEach((ch,i)=>{
+    const d=document.createElement('div');
+    d.className='flap'; d.textContent=ch;
+    d.style.animationDelay=(i*0.09)+'s';
+    wrap.appendChild(d);
+  });
+})();
+
+/* ---------------- login ---------------- */
+let currentUser = null;
+
+async function doLogin(){
+  const v = $('#nameInput').value.trim();
+  if(!v){ $('#nameInput').focus(); return; }
+  currentUser = v;
+  const list = (await sget('malaz:visitors', true)) || [];
+  list.push({name:v, ts:new Date().toISOString()});
+  await sset('malaz:visitors', list, true);
+  $('#gate').style.display='none';
+  $('#app').style.display='block';
+  $('#homeName').textContent = v;
+  $('#whoLabel').textContent = v + ' · hatta bağlı';
+  loadHomeNotes();
+}
+$('#nameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+/* ---------------- tabs ---------------- */
+$all('#tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    $all('#tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    $all('section.view').forEach(v=>v.classList.remove('active'));
+    $('#view-'+btn.dataset.v).classList.add('active');
+    if(btn.dataset.v==='admin') renderAdmin();
+  });
+});
+
+/* ---------------- home notes ---------------- */
+async function loadHomeNotes(){
+  const notes = (await sget('malaz:notes', true)) || [];
+  const box = $('#homeNotes');
+  if(!notes.length){ box.innerHTML = '<p style="color:var(--text-dim); font-size:13px;">Henüz duyuru eklenmedi.</p>'; return; }
+  box.innerHTML = notes.slice().reverse().map(n=>`
+    <div class="note-card">
+      <div>${n.text.replace(/</g,'&lt;')}</div>
+      <div class="ts">${new Date(n.ts).toLocaleString('tr-TR')}</div>
+    </div>`).join('');
+}
+
+/* ---------------- admin ---------------- */
+let adminOpenState = false;
+function checkAdmin(){
+  if($('#adminPass').value === ADMIN_PASS){
+    adminOpenState = true;
+    $('#adminLocked').style.display='none';
+    $('#adminOpen').style.display='block';
+    renderAdmin();
+  } else {
+    $('#adminErr').style.display='block';
+  }
+}
+async function renderAdmin(){
+  if(!adminOpenState) return;
+  const visitors = (await sget('malaz:visitors', true)) || [];
+  $('#visCount').textContent = visitors.length;
+  $('#visitorList').innerHTML = visitors.slice().reverse().map(v=>`
+    <div class="list-row"><span>${v.name.replace(/</g,'&lt;')}</span><span class="t">${new Date(v.ts).toLocaleString('tr-TR')}</span></div>
+  `).join('') || '<p style="color:var(--text-dim); font-size:13px;">Henüz kimse giriş yapmadı.</p>';
+
+  const notes = (await sget('malaz:notes', true)) || [];
+  $('#noteList').innerHTML = notes.slice().reverse().map((n,idx)=>{
+    const realIdx = notes.length-1-idx;
+    return `<div class="note-card">
+      <div>${n.text.replace(/</g,'&lt;')}</div>
+      <div class="ts">${new Date(n.ts).toLocaleString('tr-TR')}
+      <button class="small-btn" style="float:right;" onclick="deleteNote(${realIdx})">Sil</button></div>
+    </div>`;
+  }).join('');
+}
+async function addNote(){
+  const t = $('#noteInput').value.trim();
+  if(!t) return;
+  const notes = (await sget('malaz:notes', true)) || [];
+  notes.push({text:t, ts:new Date().toISOString()});
+  await sset('malaz:notes', notes, true);
+  $('#noteInput').value='';
+  renderAdmin();
+  loadHomeNotes();
+}
+async function deleteNote(i){
+  const notes = (await sget('malaz:notes', true)) || [];
+  notes.splice(i,1);
+  await sset('malaz:notes', notes, true);
+  renderAdmin();
+  loadHomeNotes();
+}
+
+/* ---------------- belgeler table ---------------- */
+const belgeler = [
+  ["5501","Yolcu, yük, iş ve hizmet trenlerinde kullanılır"],
+  ["5504","Tek lokomotif, motorlu drezinde kullanılır"],
+  ["5505","Banliyö ve YHT'de kullanılır"],
+  ["5507","Özel itinererli trenlerde kullanılır"],
+  ["5576","Vagonet, pompalı vagonet vb. araçlarda kullanılır"],
+  ["5201","Dispeçer emri (buluşma değişikliği, ihbar, tespit, iptal, duruş kaldırma)"],
+  ["5544","Ara istasyondan vagon alındığında"],
+  ["5553","Muntazam buluşma"],
+  ["5588","Takayüdat"],
+  ["5600","Vagon listesi"],
+  ["5602","Duruşu olmayan treni durdurmak için"],
+  ["5721","Kırmızı geçiş izni"],
+  ["5722","Bölge zaman izni"],
+  ["7003","Telgraf modeli"],
+  ["5542","İmdat talepnamesi"],
+  ["5551","Hasarlı vagonların yük trenleri ile sevki"],
+  ["5610","Makasçıya verilen model"],
+  ["5728","Dispeçer kayıt defteri"],
+  ["5510","Günlük umum (günlük tren planlaması)"],
+  ["2017","Seyrüsefere engel değil"],
+  ["2018","Arızalı vagonun atölyeye gönderilmesi"],
+  ["2019","Seyrüsefere engel"],
+  ["2020","Fren iptal"],
+  ["2052","Elektrikli makine defteri"],
+  ["2058","Dizel makine defteri"],
+  ["2088","24 saatlik faaliyet modeli"],
+  ["7000","İhbar tespiti"],
+];
+function renderBelgeler(filter=""){
+  const f = filter.toLowerCase();
+  const rows = belgeler.filter(b => b[0].includes(f) || b[1].toLowerCase().includes(f));
+  const t = $('#belgeTable');
+  t.innerHTML = '<tr><th style="width:90px;">Model</th><th>Kullanım Alanı</th></tr>' +
+    rows.map(b=>`<tr><td class="mono">${b[0]}</td><td>${b[1]}</td></tr>`).join('');
+}
+renderBelgeler();
+$('#belgeFilter').addEventListener('input', e=>renderBelgeler(e.target.value));
+
+/* ---------------- bölgeler belt ---------------- */
+(function(){
+  const regions = [
+    {n:3,l:"İzmir"},{n:7,l:"Afyon"},{n:1,l:"İstanbul"},{n:2,l:"Ankara"},
+    {n:4,l:"Sivas"},{n:5,l:"Malatya"},{n:6,l:"Adana"},{n:8,l:"YHT"}
+  ];
+  const line = $('#beltLine');
+  const step = 920/(regions.length-1);
+  regions.forEach((r,i)=>{
+    const d=document.createElement('div');
+    d.className='belt-node';
+    d.style.left = (i*step)+'px';
+    d.innerHTML = `<div class="lbl">${r.l}</div><div class="num">Bölge ${r.n}</div><div class="dot"></div>`;
+    line.appendChild(d);
+  });
+})();
+
+/* ---------------- station diagram (SVG) ---------------- */
+const tipbox = $('#tipbox');
+function showTip(e, title, body){
+  $('#tipT').textContent = title;
+  $('#tipB').textContent = body;
+  tipbox.style.display='block';
+  const x = Math.min(e.clientX+16, window.innerWidth-300);
+  tipbox.style.left = x+'px';
+  tipbox.style.top = (e.clientY+16)+'px';
+}
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.clickable')) tipbox.style.display='none';
+});
+
+const lineNames = {
+  1:"Haydarpaşa – Kayaş", 2:"Kayaş – Hanlı – Çetinkaya", 3:"İzmir – Alsancak",
+  4:"Sivas – Malatya", 5:"Malatya – Adana", 6:"İskenderun – Divriği",
+  7:"Afyon – Konya", 8:"YHT hattı"
+};
+
+function buildStation(){
+  const region = $('#regionSelect').value;
+  const type = $('#typeSelect').value;
+  const isI = type==='i';
+  $('#hmNo').textContent = 'BM-'+region+'01';
+  $('#sigNo').textContent = 'S'+region+(isI? '/G4-C4-K3' : '/G3');
+  $('#lineNo').textContent = lineNames[region];
+
+  const svg = $('#stationSvg');
+  const W=1300,H=420;
+  const railY = 210;
+  let parts = [];
+  parts.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="none"/>`);
+  // main rail
+  parts.push(`<line x1="40" y1="${railY}" x2="${W-40}" y2="${railY}" stroke="#3a4b5a" stroke-width="4"/>`);
+  // barınma yolu (siding) between head switch and exit switch
+  parts.push(`<line x1="380" y1="${railY+40}" x2="920" y2="${railY+40}" stroke="#2a3947" stroke-width="3" stroke-dasharray="2 6"/>`);
+
+  // direction labels
+  parts.push(`<text x="60" y="${railY-70}" class="svglabel y" font-size="15">◀ ${region==6?'İSKENDERUN':'BATI'} YÖNÜ</text>`);
+  parts.push(`<text x="${W-260}" y="${railY-70}" class="svglabel y" font-size="15">${region==6?'DİVRİĞİ':'DOĞU'} YÖNÜ ▶</text>`);
+
+  // telefon direği (750m) far left symbolic
+  parts.push(svgPole(100, railY, '#8fa3b0', 'Telefon Direği', 'Baş makasa 750 m uzaklıktadır. Trafik telefonu bağlantı noktasıdır.'));
+  // ileri koruma (700m)
+  parts.push(svgFlagSign(190, railY, '#3fa34d', 'İleri Koruma', 'Baş makasa 700 m uzaklıktadır. Açık: levha yatık / gece yeşil. Kapalı: ortası kırmızı kenarı beyaz / gece kırmızı.'));
+  // mesafe tayin levhası
+  parts.push(svgDiamond(250, railY, '#e8b93f', 'Mesafe Tayin Levhası', 'Samafor ihbar, ileri koruma ve D fenerinden önce bulunur.'));
+  // samafor ihbar (500m to samafor)
+  parts.push(svgFlagSign(300, railY, '#e8b93f', 'Samafor İhbar', 'Samafora 500 m uzaklıktadır. Kapalıysa samaforun önünde durulur.'));
+  // samafor (200-300m to head switch)
+  parts.push(svgSamafor(350, railY, region+'A', 'Samafor', 'Baş makasa 200–300 m uzaklıktadır. Kollar: kapalı=tüm kollar kapalı, 135°=açık.'));
+
+  // baş makas (head switch)
+  parts.push(svgSwitch(400, railY, 'BM-'+region+'01', 'Baş Makas', 'İstasyon tesisleri, baş makastan çıkış makasına kadar olan bölümdür. Örnek numara: BM-'+region+'01.'));
+
+  // giriş sinyali
+  parts.push(svgSignalHead(460, railY, 'S'+region+'-G', 'Giriş Sinyali', '4 lambalı, kumandalı sinyaldir. Trenin istasyona girişini yönetir.'));
+
+  // platform / istasyon binası
+  parts.push(`<rect x="560" y="${railY-90}" width="180" height="46" fill="#1c2733" stroke="#2a3947"/>`);
+  parts.push(`<text x="580" y="${railY-62}" class="svglabel b" font-size="13">İSTASYON BİNASI</text>`);
+  parts.push(`<text x="580" y="${railY-46}" class="svglabel" font-size="11">Bölge ${region} — ${lineNames[region]}</text>`);
+
+  // koruma sinyali (mid)
+  parts.push(svgSignalHead(700, railY-40, 'S'+region+'-K', 'Koruma Sinyali', '3 lambalı, kumandalı sinyaldir. Terminal istasyonlarda giriş sinyalinden önce bulunur.', true));
+
+  // çıkış makası
+  parts.push(svgSwitch(860, railY, 'ÇM-'+region+'02', 'Çıkış Makası', 'İstasyon tesislerinin bittiği noktadır. Örnek numara: ÇM-'+region+'02.'));
+
+  // çıkış sinyali
+  parts.push(svgSignalHead(940, railY, 'S'+region+'-Ç', 'Çıkış Sinyali', isI ? '3 veya 4 lambalı, kumandalı sinyaldir. İ tipi istasyonda trenler bu sinyalin önünde durdurulur.' : '3 veya 4 lambalı, kumandalı sinyaldir.'));
+
+  if(!isI){
+    // toros: only giriş samaforu, tren giriş samaforunda durur — reuse samafor near giriş
+    parts.push(svgNote(460, railY+70, 'Toros Tipi: yalnızca giriş samaforu vardır, tren bu samaforda durdurulur. Makasçı baş makasa gelir.'));
+  } else {
+    parts.push(svgNote(460, railY+70, 'İ Tipi: giriş ve çıkış samaforu vardır, geçiş hızı 55 km/s. Makasçı baş makasa gelmez.'));
+  }
+
+  // otomatik blok sinyali further out
+  parts.push(svgSignalHead(1100, railY, 'S'+region+'-OB', 'Otomatik Blok Sinyali', '3 lambalı, otomatik çalışır. Blok kesimleri arasında tren aralığını korur.'));
+
+  svg.innerHTML = parts.join('');
+  $all('.clickable', svg).forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.stopPropagation();
+      showTip(e, el.dataset.title, el.dataset.body);
+    });
+  });
+}
+
+function svgPole(x,y,color,title,body){
+  return `<g class="clickable" data-title="${title}" data-body="${body}">
+    <line x1="${x}" y1="${y}" x2="${x}" y2="${y-46}" stroke="${color}" stroke-width="3"/>
+    <circle cx="${x}" cy="${y-52}" r="5" fill="${color}"/>
+    <text x="${x-30}" y="${y+20}" class="svglabel" font-size="10">Tel. Direği</text>
+  </g>`;
+}
+function svgFlagSign(x,y,color,title,body){
+  return `<g class="clickable" data-title="${title}" data-body="${body}">
+    <line x1="${x}" y1="${y}" x2="${x}" y2="${y-40}" stroke="#6c7a89" stroke-width="2"/>
+    <polygon points="${x},${y-40} ${x+22},${y-34} ${x},${y-28}" fill="${color}"/>
+    <text x="${x-24}" y="${y+20}" class="svglabel" font-size="9.5">${title}</text>
+  </g>`;
+}
+function svgDiamond(x,y,color,title,body){
+  return `<g class="clickable" data-title="${title}" data-body="${body}">
+    <polygon points="${x},${y-46} ${x+10},${y-36} ${x},${y-26} ${x-10},${y-36}" fill="${color}"/>
+    <text x="${x-28}" y="${y+20}" class="svglabel" font-size="9">Mesafe Tayin</text>
+  </g>`;
+}
+function svgSamafor(x,y,code,title,body){
+  return `<g class="clickable" data-title="${title}" data-body="${body}">
+    <line x1="${x}" y1="${y}" x2="${x}" y2="${y-60}" stroke="#8fa3b0" stroke-width="3"/>
+    <line x1="${x}" y1="${y-60}" x2="${x+26}" y2="${y-66}" stroke="#e8b93f" stroke-width="4"/>
+    <text x="${x-16}" y="${y+20}" class="svglabel" font-size="9.5">Samafor ${code}</text>
+  </g>`;
+}
+function svgSwitch(x,y,code,title,body){
+  return `<g class="clickable" data-title="${title}" data-body="${body}">
+    <line x1="${x}" y1="${y}" x2="${x+40}" y2="${y-26}" stroke="#e8b93f" stroke-width="4"/>
+    <circle cx="${x}" cy="${y}" r="6" fill="#e8b93f"/>
+    <text x="${x-20}" y="${y+22}" class="svglabel y" font-size="10.5">${code}</text>
+  </g>`;
+}
+function svgSignalHead(x,y,code,title,body,small){
+  const w = small?10:14, h=small?26:34;
+  return `<g class="clickable" data-title="${title}" data-body="${body}">
+    <line x1="${x}" y1="${y}" x2="${x}" y2="${y-40}" stroke="#3a4b5a" stroke-width="3"/>
+    <rect x="${x-w/2}" y="${y-40-h}" width="${w}" height="${h}" fill="#0b1218" stroke="#2a3947"/>
+    <circle cx="${x}" cy="${y-40-h+9}" r="3.4" fill="#d64545"/>
+    <circle cx="${x}" cy="${y-40-h+h/2}" r="3.4" fill="#e8b93f"/>
+    <circle cx="${x}" cy="${y-40-h+h-9}" r="3.4" fill="#3fa34d"/>
+    <text x="${x-18}" y="${y+18}" class="svglabel" font-size="10">${code}</text>
+  </g>`;
+}
+function svgNote(x,y,text){
+  return `<text x="${x-380}" y="${y}" class="svglabel" font-size="11.5" fill="#9aa8b3">${text}</text>`;
+}
+
+$('#regionSelect').addEventListener('change', buildStation);
+$('#typeSelect').addEventListener('change', buildStation);
+buildStation();
+</script>
+</body>
+</html>
