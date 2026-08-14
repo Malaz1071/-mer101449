@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Akıllı Pomodoro Planlayıcı</title>
+<style>
+body{
+font-family:Arial,sans-serif;
+background:#f4f6f9;
+margin:0;
+padding:20px;
+}
+.container{
+max-width:900px;
+margin:auto;
+background:white;
+padding:20px;
+border-radius:15px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+h1{text-align:center;color:#333;}
+.section{margin-bottom:25px;}
+.timer{
+font-size:48px;
+text-align:center;
+margin:15px 0;
+font-weight:bold;
+color:#2c3e50;
+}
+button{
+padding:10px 15px;
+margin:5px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+background:#3498db;
+color:white;
+font-size:16px;
+}
+button:hover{background:#2980b9;}
+input,select,textarea{
+width:100%;
+padding:10px;
+margin-top:8px;
+border:1px solid #ccc;
+border-radius:8px;
+box-sizing:border-box;
+}
+.avatar{
+font-size:80px;
+text-align:center;
+margin-top:10px;
+}
+.note{
+background:#fff8c6;
+padding:10px;
+border-radius:8px;
+margin-top:10px;
+}
+.plan-grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
+}
+.plan-grid input{width:100%;}
+.reminder{
+position:fixed;
+bottom:20px;
+right:20px;
+background:#ffeb3b;
+padding:15px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.2);
+display:none;
+max-width:250px;
+}
+@media(max-width:600px){
+.plan-grid{grid-template-columns:1fr;}
+.timer{font-size:36px;}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🎯 Akıllı Pomodoro Planlayıcı</h1>
+
+<div class="section">
+<h2>🎓 Hedef Meslek</h2>
+<select id="career" onchange="updateAvatar()">
+<option value="engineer">Mühendis</option>
+<option value="doctor">Doktor</option>
+<option value="teacher">Öğretmen</option>
+<option value="police">Polis</option>
+<option value="pilot">Pilot</option>
+<option value="software">Yazılımcı</option>
+</select>
+<div class="avatar" id="avatar">👨‍💻</div>
+</div>
+
+<div class="section">
+<h2>📅 Sınav Geri Sayımı</h2>
+<label>Sınav Türü</label>
+<select id="examType">
+<option>YKS</option>
+<option>KPSS</option>
+<option>DGS</option>
+<option>ALES</option>
+</select>
+
+<label>Sınav Tarihi</label>
+<input type="date" id="examDate" />
+
+<button onclick="calculateDays()">Hesapla</button>
+<p id="daysLeft"><b>Sınav tarihi seçiniz</b></p>
+</div>
+
+<div class="section">
+<h2>⏱️ Pomodoro Zamanlayıcı</h2>
+<div class="timer" id="timer">25:00</div>
+<div style="text-align:center;">
+<button onclick="startTimer()">Başlat</button>
+<button onclick="pauseTimer()">Duraklat</button>
+<button onclick="resetTimer()">Sıfırla</button>
+</div>
+</div>
+
+<div class="section">
+<h2>📝 Notlarım</h2>
+<textarea id="noteInput" rows="3" placeholder="Örn: TCDD sinyal numaralarını tekrar et"></textarea>
+<button onclick="addNote()">Not Ekle</button>
+<div id="notesList"></div>
+</div>
+
+<div class="section">
+<h2>📚 Haftalık Ders Planı</h2>
+<div class="plan-grid">
+<div><label>Pazartesi</label><input id="pzt" placeholder="Matematik 2 saat"></div>
+<div><label>Salı</label><input id="sali" placeholder="Türkçe 1 saat"></div>
+<div><label>Çarşamba</label><input id="cars" placeholder="Geometri 1 saat"></div>
+<div><label>Perşembe</label><input id="pers" placeholder="Fizik 2 saat"></div>
+<div><label>Cuma</label><input id="cuma" placeholder="Deneme sınavı"></div>
+<div><label>Cumartesi</label><input id="cmt" placeholder="Tekrar + soru çözümü"></div>
+<div><label>Pazar</label><input id="paz" placeholder="Eksik konu tamamlama"></div>
+</div>
+<button onclick="savePlan()">Planı Kaydet</button>
+<p id="planSaved"></p>
+</div>
+</div>
+
+<div class="reminder" id="reminderBox"></div>
+
+<script>
+// Avatar
+function updateAvatar(){
+const career=document.getElementById('career').value;
+const avatar=document.getElementById('avatar');
+const map={
+engineer:'👷',
+doctor:'👨‍⚕️',
+teacher:'👨‍🏫',
+police:'👮',
+pilot:'🧑‍✈️',
+software:'👨‍💻'
+};
+avatar.textContent=map[career];
+}
+
+// Sınav günü hesaplama
+function calculateDays(){
+const date=document.getElementById('examDate').value;
+if(!date)return;
+const exam=new Date(date);
+const today=new Date();
+today.setHours(0,0,0,0);
+const diff=Math.ceil((exam-today)/(1000*60*60*24));
+document.getElementById('daysLeft').innerHTML=
+diff>=0 ? `<b>${diff} gün kaldı!</b>` : '<b>Sınav tarihi geçti.</b>';
+}
+
+// Pomodoro
+let time=25*60;
+let interval=null;
+
+function updateTimer(){
+const min=String(Math.floor(time/60)).padStart(2,'0');
+const sec=String(time%60).padStart(2,'0');
+document.getElementById('timer').textContent=`${min}:${sec}`;
+}
+
+function startTimer(){
+if(interval)return;
+interval=setInterval(()=>{
+if(time>0){
+time--;
+updateTimer();
+}else{
+clearInterval(interval);
+interval=null;
+alert('Çalışma süresi bitti! 5 dakika mola ver.');
+time=5*60;
+updateTimer();
+}
+},1000);
+}
+
+function pauseTimer(){
+clearInterval(interval);
+interval=null;
+}
+
+function resetTimer(){
+pauseTimer();
+time=25*60;
+updateTimer();
+}
+
+// Notlar
+let notes=[];
+
+function addNote(){
+const input=document.getElementById('noteInput');
+const text=input.value.trim();
+if(!text)return;
+notes.push(text);
+renderNotes();
+input.value='';
+}
+
+function renderNotes(){
+const list=document.getElementById('notesList');
+list.innerHTML='';
+notes.forEach(n=>{
+const div=document.createElement('div');
+div.className='note';
+div.textContent=n;
+list.appendChild(div);
+});
+}
+
+// Rastgele hatırlatma
+setInterval(()=>{
+if(notes.length===0)return;
+const note=notes[Math.floor(Math.random()*notes.length)];
+const box=document.getElementById('reminderBox');
+box.textContent='🔔 Hatırlatma: '+note;
+box.style.display='block';
+setTimeout(()=>{box.style.display='none';},5000);
+},30000); // 30 saniyede bir
+
+// Haftalık plan
+function savePlan(){
+document.getElementById('planSaved').innerHTML='✅ Haftalık plan kaydedildi!';
+}
+</script>
+</body>
+</html>
+<title>Pomodoro Çalışma Takibi | Akıllı Pomodoro Planlayıcı</title>
+<meta name="description" content="Pomodoro zamanlayıcı, KPSS, YKS ve DGS çalışma planı, haftalık ders programı ve not hatırlatma sistemi.">
+<meta name="keywords" content="pomodoro, pomodoro timer, kpss çalışma programı, yks çalışma programı, dgs pomodoro">
+<meta name="robots" content="index, follow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script data-goatcounter="https://SENINSITE.goatcounter.com/count"
+async src="//gc.zgo.at/count.js"></script>
+<script>
+const pass = prompt('Admin şifresi:');
+if(pass !== '1234'){
+document.body.innerHTML = '<h1>Erişim reddedildi</h1>';
+}
+</script>
